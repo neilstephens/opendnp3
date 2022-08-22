@@ -229,6 +229,9 @@ void LinkContext::TryStartTransmission()
 
 void LinkContext::OnKeepAliveTimeout()
 {
+    if(!isOnline)
+	  return;
+
     const auto now = Timestamp(this->executor->get_time());
 
     auto elapsed = now - this->lastMessageTimestamp;
@@ -246,6 +249,9 @@ void LinkContext::OnKeepAliveTimeout()
 
 void LinkContext::OnResponseTimeout()
 {
+    if(!isOnline)
+	  return;
+
     this->pPriState = &(this->pPriState->OnTimeout(*this));
 
     this->TryStartTransmission();
