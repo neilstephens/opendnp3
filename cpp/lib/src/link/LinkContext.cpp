@@ -328,19 +328,9 @@ bool LinkContext::OnFrame(const LinkHeaderFields& header, const ser4cpp::rseq_t&
 
     if (header.addresses.IsBroadcast())
     {
-        // Broadcast addresses can only be used for sending data.
-        // If confirmed data is used, no response is sent back.
-        if (header.func == LinkFunction::PRI_UNCONFIRMED_USER_DATA)
-        {
-            this->PushDataUp(Message(header.addresses, userdata));
-            return true;
-        }
-        else if (header.func == LinkFunction::PRI_CONFIRMED_USER_DATA)
-        {
-            pSecState = &pSecState->OnConfirmedUserData(*this, header.addresses.source, header.fcb, true,
-                                                        Message(header.addresses, userdata));
-        }
-        else
+	  // Broadcast addresses can only be used for sending data.
+	  if(header.func != LinkFunction::PRI_UNCONFIRMED_USER_DATA
+	  && header.func != LinkFunction::PRI_CONFIRMED_USER_DATA)
         {
             FORMAT_LOG_BLOCK(logger, flags::WARN, "Received invalid function (%s) with broadcast destination address",
                              LinkFunctionSpec::to_string(header.func));
@@ -351,6 +341,7 @@ bool LinkContext::OnFrame(const LinkHeaderFields& header, const ser4cpp::rseq_t&
 
     // reset the keep-alive timestamp
     this->lastMessageTimestamp = Timestamp(this->executor->get_time());
+    this->listener->OnKeepAliveReset();
 
     switch (header.func)
     {
@@ -376,7 +367,7 @@ bool LinkContext::OnFrame(const LinkHeaderFields& header, const ser4cpp::rseq_t&
         pSecState = &pSecState->OnRequestLinkStatus(*this, header.addresses.source);
         break;
     case (LinkFunction::PRI_CONFIRMED_USER_DATA):
-        pSecState = &pSecState->OnConfirmedUserData(*this, header.addresses.source, header.fcb, false,
+	  pSecState = &pSecState->OnConfirmedUserData(*this, header.addresses.source, header.fcb, header.addresses.IsBroadcast(),
                                                     Message(header.addresses, userdata));
         break;
     case (LinkFunction::PRI_UNCONFIRMED_USER_DATA):

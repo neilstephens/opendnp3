@@ -49,6 +49,9 @@ public:
 
     /// Called when a keep alive message receives a valid response
     virtual void OnKeepAliveSuccess() {}
+
+    /// Called when a valid response resets the keep alive timer
+    virtual void OnKeepAliveReset() {}
 };
 
 } // namespace opendnp3
