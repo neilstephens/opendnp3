@@ -28,13 +28,13 @@
 #ifdef WIN32
 #define SAFE_STRING_FORMAT(dest, length_, format, ...) _snprintf_s(dest, length_, _TRUNCATE, format, ##__VA_ARGS__)
 #else
-#define SAFE_STRING_FORMAT(dest, size, format, ...) snprintf(dest, size, format, ##__VA_ARGS__)
+#define SAFE_STRING_FORMAT(dest, size, /*format,*/ ...) snprintf(dest, size, /*format,*/ __VA_ARGS__)
 #endif // WIN32
 
-#define LOG_FORMAT(logger, levels, format, ...)                                                                        \
+#define LOG_FORMAT(logger, levels, /*format,*/ ...)                                                                        \
     {                                                                                                                  \
         char message_buffer_some_name_no_conflict[opendnp3::max_log_entry_size];                                       \
-        SAFE_STRING_FORMAT(message_buffer_some_name_no_conflict, opendnp3::max_log_entry_size, format, ##__VA_ARGS__); \
+        SAFE_STRING_FORMAT(message_buffer_some_name_no_conflict, opendnp3::max_log_entry_size, /*format,*/ __VA_ARGS__); \
         logger.log(levels, LOCATION, message_buffer_some_name_no_conflict);                                            \
     }
 
@@ -50,19 +50,19 @@
         pLogger->log(levels, LOCATION, message);                                                                       \
     }
 
-#define FORMAT_LOG_BLOCK(logger, levels, format, ...)                                                                  \
+#define FORMAT_LOG_BLOCK(logger, levels, /*format,*/ ...)                                                                  \
     if (logger.is_enabled(levels))                                                                                     \
     {                                                                                                                  \
         char message_buffer_some_name_no_conflict[opendnp3::max_log_entry_size];                                       \
-        SAFE_STRING_FORMAT(message_buffer_some_name_no_conflict, opendnp3::max_log_entry_size, format, ##__VA_ARGS__); \
+        SAFE_STRING_FORMAT(message_buffer_some_name_no_conflict, opendnp3::max_log_entry_size, /*format,*/ __VA_ARGS__); \
         logger.log(levels, LOCATION, message_buffer_some_name_no_conflict);                                            \
     }
 
-#define FORMAT_LOGGER_BLOCK(pLogger, levels, format, ...)                                                              \
+#define FORMAT_LOGGER_BLOCK(pLogger, levels, /*format,*/ ...)                                                              \
     if (pLogger && pLogger->is_enabled(levels))                                                                        \
     {                                                                                                                  \
         char message_buffer_some_name_no_conflict[opendnp3::max_log_entry_size];                                       \
-        SAFE_STRING_FORMAT(message_buffer_some_name_no_conflict, opendnp3::max_log_entry_size, format, ##__VA_ARGS__); \
+        SAFE_STRING_FORMAT(message_buffer_some_name_no_conflict, opendnp3::max_log_entry_size, /*format,*/ __VA_ARGS__); \
         pLogger->log(levels, LOCATION, message_buffer_some_name_no_conflict);                                          \
     }
 

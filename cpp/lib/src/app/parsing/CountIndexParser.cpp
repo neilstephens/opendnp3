@@ -233,7 +233,7 @@ ParseResult CountIndexParser::ParseCountOfIndices(ser4cpp::rseq_t& buffer,
 
     if (pHandler)
     {
-        auto read = [&numparser, record](ser4cpp::rseq_t& buffer, uint32_t pos) -> uint16_t {
+        auto read = [&numparser](ser4cpp::rseq_t& buffer, uint32_t pos) -> uint16_t {
             return numparser.ReadNum(buffer);
         };
 
