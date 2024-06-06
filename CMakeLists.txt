@@ -81,6 +81,11 @@ else()
     set(BUILD_SHARED_LIBS ON)
 endif()
 
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+	#Stop cmake warning about DOWNLOAD_EXTRACT_TIMESTAMP for FetchContent/ExternalProject
+	cmake_policy(SET CMP0135 NEW)
+endif()
+
 # External dependencies
 include(./deps/asio.cmake)
 include(./deps/exe4cpp.cmake)

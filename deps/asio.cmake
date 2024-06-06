@@ -4,7 +4,6 @@ FetchContent_Declare(
     asio
     URL      https://github.com/chriskohlhoff/asio/archive/asio-1-16-0.zip
     URL_HASH SHA1=6BDD33522D5B95B36445ABB2072A481F7CE15402
-    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
 )
 
 FetchContent_GetProperties(asio)
