@@ -46,7 +46,7 @@ TCPServerIOHandler::TCPServerIOHandler(const Logger& logger,
     : IOHandler(logger, mode == ServerAcceptMode::CloseExisting, listener),
       executor(std::move(executor)),
       endpoint(std::move(endpoint)),
-      server(std::make_shared<Server>(this->logger, this->executor, this->endpoint, ec))
+      server(nullptr)
 {
 }
 
