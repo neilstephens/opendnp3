@@ -74,6 +74,7 @@ private:
     const std::shared_ptr<IMasterTask> clearRestart;
     const std::shared_ptr<IMasterTask> assignClass;
     const std::shared_ptr<IMasterTask> startupIntegrity;
+    const std::shared_ptr<IMasterTask> forcedIntegrity;
     const std::shared_ptr<IMasterTask> eventScan;
     const std::shared_ptr<IMasterTask> disableUnsol;
     const std::shared_ptr<IMasterTask> enableUnsol;

@@ -40,6 +40,9 @@ MasterTasks::MasterTasks(const MasterParams& params,
       assignClass(std::make_shared<AssignClassTask>(context, app, RetryBehavior(params), logger)),
       startupIntegrity(std::make_shared<StartupIntegrityPoll>(
           context, app, SOEHandler, params.startupIntegrityClassMask, RetryBehavior(params), logger)),
+      forcedIntegrity(std::make_shared<StartupIntegrityPoll>(context, app, SOEHandler,
+          params.useAlternateMaskForForcedIntegrity ? params.alternateIntegrityClassMask : params.startupIntegrityClassMask,
+          TaskBehavior::ReactsToIINOnly(), logger)),
       eventScan(std::make_shared<EventScanTask>(
           context, app, SOEHandler, params.eventScanOnEventsAvailableClassMask, logger)),
       // optional tasks
@@ -52,7 +55,7 @@ MasterTasks::MasterTasks(const MasterParams& params,
 void MasterTasks::Initialize(IMasterScheduler& scheduler, IMasterTaskRunner& runner)
 {
     for (auto& task :
-         {clearRestart, assignClass, startupIntegrity, eventScan, enableUnsol, disableUnsol, timeSynchronization})
+         {clearRestart, assignClass, startupIntegrity, forcedIntegrity, eventScan, enableUnsol, disableUnsol, timeSynchronization})
     {
         if (task)
             scheduler.Add(task, runner);
@@ -81,14 +84,14 @@ bool MasterTasks::DemandEventScan()
 
 bool MasterTasks::DemandIntegrity()
 {
-    return this->Demand(this->startupIntegrity);
+    return this->Demand(this->forcedIntegrity);
 }
 
 void MasterTasks::OnRestartDetected()
 {
     this->Demand(this->clearRestart);
     this->Demand(this->assignClass);
-    this->Demand(this->startupIntegrity);
+    this->Demand(this->forcedIntegrity);
     this->Demand(this->enableUnsol);
 }
 
