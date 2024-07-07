@@ -42,7 +42,8 @@ MasterTasks::MasterTasks(const MasterParams& params,
           context, app, SOEHandler, params.startupIntegrityClassMask, RetryBehavior(params), logger)),
       forcedIntegrity(std::make_shared<StartupIntegrityPoll>(context, app, SOEHandler,
           params.useAlternateMaskForForcedIntegrity ? params.alternateIntegrityClassMask : params.startupIntegrityClassMask,
-          TaskBehavior::ReactsToIINOnly(), logger)),
+          params.retryForcedIntegrity ? TaskBehavior::ReactsToIINWithRetry(params.taskRetryPeriod, params.maxTaskRetryPeriod) : TaskBehavior::ReactsToIINOnly(),
+          logger)),
       eventScan(std::make_shared<EventScanTask>(
           context, app, SOEHandler, params.eventScanOnEventsAvailableClassMask, logger)),
       // optional tasks

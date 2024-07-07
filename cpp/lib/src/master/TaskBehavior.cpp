@@ -56,6 +56,14 @@ TaskBehavior TaskBehavior::SingleImmediateExecutionWithRetry(const TimeDuration&
                         minRetryDelay, maxRetryDelay, Timestamp::Max());
 }
 
+TaskBehavior TaskBehavior::ReactsToIINWithRetry(const TimeDuration& minRetryDelay,
+                                                const TimeDuration& maxRetryDelay)
+{
+    return TaskBehavior(TimeDuration::Min(), // not periodic
+                        Timestamp::Max(),    // only run when needed
+                        minRetryDelay, maxRetryDelay, Timestamp::Max());
+}
+
 TaskBehavior TaskBehavior::ReactsToIINOnly()
 {
     return TaskBehavior(TimeDuration::Min(), // not periodic

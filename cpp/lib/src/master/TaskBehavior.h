@@ -44,7 +44,8 @@ public:
 
     static TaskBehavior SingleImmediateExecutionWithRetry(const TimeDuration& minRetryDelay,
                                                           const TimeDuration& maxRetryDelay);
-
+    static TaskBehavior ReactsToIINWithRetry(const TimeDuration& minRetryDelay,
+                                             const TimeDuration& maxRetryDelay);
     static TaskBehavior ReactsToIINOnly();
 
     /**

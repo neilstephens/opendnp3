@@ -57,8 +57,11 @@ struct MasterParams
     ClassField startupIntegrityClassMask = ClassField::AllClasses();
 
     /// Whether to use the alternate class mask for mandatory integrity scans in response to
-    /// EVENT_BUFFER_OVERFLOW and DEVICE_RESTART events
+    /// EVENT_BUFFER_OVERFLOW and DEVICE_RESTART IIN events
     bool useAlternateMaskForForcedIntegrity = false;
+
+    /// Whether to retry integrity scans that are triggered by mandatory response to IIN flags
+    bool retryForcedIntegrity = false;
 
     /// Which classes should be requested in a forced integrity scan if useAlternateMaskForForcedIntegrity
     /// is true. Defaults to 3/2/1/0
