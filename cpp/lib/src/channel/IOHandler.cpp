@@ -138,9 +138,11 @@ bool IOHandler::Enable(const std::shared_ptr<ILinkSession>& session)
     if (iter->enabled)
         return true; // already enabled
 
+    auto chanAlreadyOpened = IsAnySessionEnabled();
+
     iter->enabled = true;
 
-    if (this->channel)
+    if (chanAlreadyOpened)
     {
         iter->LowerLayerUp();
     }
