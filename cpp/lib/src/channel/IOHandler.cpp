@@ -138,20 +138,21 @@ bool IOHandler::Enable(const std::shared_ptr<ILinkSession>& session)
     if (iter->enabled)
         return true; // already enabled
 
-    auto chanAlreadyOpened = IsAnySessionEnabled();
+    auto firstSession = !IsAnySessionEnabled();
 
     iter->enabled = true;
 
-    if (chanAlreadyOpened)
-    {
-        iter->LowerLayerUp();
-    }
-    else
+    if (firstSession)
     {
         this->UpdateListener(ChannelState::OPENING);
-
         this->BeginChannelAccept();
     }
+    else if (this->channel)
+    {
+	  iter->LowerLayerUp();
+    }
+    //else - chan opening but not open yet
+    //	LowerLayerUp will be called on open
 
     return true;
 }
