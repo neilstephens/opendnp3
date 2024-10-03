@@ -33,7 +33,8 @@ LinkContext::LinkContext(const Logger& logger,
                          std::shared_ptr<ILinkListener> listener,
                          ILinkSession& session,
                          const LinkLayerConfig& config)
-    : logger(logger),
+    : sendingUnconfirmed(false),
+	logger(logger),
       config(config),
       pSegments(nullptr),
       txMode(LinkTransmitMode::Idle),
@@ -86,6 +87,7 @@ bool LinkContext::OnLowerLayerDown()
     txMode = LinkTransmitMode::Idle;
     pendingPriTx.clear();
     pendingSecTx.clear();
+    sendingUnconfirmed = false;
 
     rspTimeoutTimer.cancel();
     keepAliveTimer.cancel();

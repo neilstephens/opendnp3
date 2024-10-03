@@ -56,17 +56,7 @@ class PLLS_Idle final : public PriStateBase
 
     PriStateBase& TrySendUnconfirmed(LinkContext&, ITransportSegment& segments) override;
     PriStateBase& TrySendRequestLinkStatus(LinkContext&) override;
-};
-
-/////////////////////////////////////////////////////////////////////////////
-// Wait state for send unconfirmed data
-/////////////////////////////////////////////////////////////////////////////
-
-class PLLS_SendUnconfirmedTransmitWait final : public PriStateBase
-{
-    MACRO_STATE_SINGLETON_INSTANCE(PLLS_SendUnconfirmedTransmitWait);
-
-    virtual PriStateBase& OnTxReady(LinkContext& ctx) override;
+    PriStateBase& OnTxReady(LinkContext&) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////

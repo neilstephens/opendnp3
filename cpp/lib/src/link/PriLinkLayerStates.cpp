@@ -34,40 +34,40 @@ namespace opendnp3
 PriStateBase& PriStateBase::OnAck(LinkContext& ctx, bool /*rxBuffFull*/)
 {
     ++ctx.statistics.numUnexpectedFrame;
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood");
+    FORMAT_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood: Received ACK in state %s", this->Name());
     return *this;
 }
 
 PriStateBase& PriStateBase::OnNack(LinkContext& ctx, bool /*rxBuffFull*/)
 {
     ++ctx.statistics.numUnexpectedFrame;
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood");
+    FORMAT_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood: Received NACK in state %s", this->Name());
     return *this;
 }
 
 PriStateBase& PriStateBase::OnLinkStatus(LinkContext& ctx, bool /*rxBuffFull*/)
 {
     ++ctx.statistics.numUnexpectedFrame;
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood");
+    FORMAT_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood: Received LinkStatus in state %s", this->Name());
     return *this;
 }
 
 PriStateBase& PriStateBase::OnNotSupported(LinkContext& ctx, bool /*rxBuffFull*/)
 {
     ++ctx.statistics.numUnexpectedFrame;
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood");
+    FORMAT_LOG_BLOCK(ctx.logger, flags::WARN, "Frame context not understood: Received NotSupported in state %s", this->Name());
     return *this;
 }
 
 PriStateBase& PriStateBase::OnTxReady(LinkContext& ctx)
 {
-    FORMAT_LOG_BLOCK(ctx.logger, flags::ERR, "Invalid action for state: %s", this->Name());
+    FORMAT_LOG_BLOCK(ctx.logger, flags::ERR, "Invalid action (OnTxReady) for state: %s", this->Name());
     return *this;
 }
 
 PriStateBase& PriStateBase::OnTimeout(LinkContext& ctx)
 {
-    FORMAT_LOG_BLOCK(ctx.logger, flags::ERR, "Invalid action for state: %s", this->Name());
+    FORMAT_LOG_BLOCK(ctx.logger, flags::ERR, "Invalid action (OnTimeout) for state: %s", this->Name());
     return *this;
 }
 
@@ -87,42 +87,64 @@ PriStateBase& PriStateBase::TrySendRequestLinkStatus(LinkContext& /*unused*/)
 
 PLLS_Idle PLLS_Idle::instance;
 
+void ContinueSendUnconfirmed(LinkContext& ctx)
+{
+	if (ctx.pSegments->Advance())
+	{
+		auto output = ctx.FormatPrimaryBufferWithUnconfirmed(ctx.pSegments->GetAddresses(), ctx.pSegments->GetSegment());
+		ctx.QueueTransmit(output, true);
+		ctx.priDeferredActions.push_back([&](){ContinueSendUnconfirmed(ctx);});
+	}
+	else
+	{
+		ctx.CompleteSendOperation();
+		ctx.sendingUnconfirmed = false;
+	}
+}
+
 PriStateBase& PLLS_Idle::TrySendUnconfirmed(LinkContext& ctx, ITransportSegment& segments)
 {
-    auto first = segments.GetSegment();
-    auto output = ctx.FormatPrimaryBufferWithUnconfirmed(segments.GetAddresses(), first);
-    ctx.QueueTransmit(output, true);
-    return PLLS_SendUnconfirmedTransmitWait::Instance();
+	if(ctx.sendingUnconfirmed)
+		return *this;
+
+	ctx.sendingUnconfirmed = true;
+
+	auto action = [&]()
+	{
+		auto first = segments.GetSegment();
+		auto output = ctx.FormatPrimaryBufferWithUnconfirmed(segments.GetAddresses(), first);
+		ctx.QueueTransmit(output, true);
+		ctx.priDeferredActions.push_back([&](){ContinueSendUnconfirmed(ctx);});
+	};
+
+	if(ctx.txMode != LinkTransmitMode::Primary)
+		action();
+	else
+		ctx.priDeferredActions.push_back(action);
+
+	return *this;
 }
 
 PriStateBase& PLLS_Idle::TrySendRequestLinkStatus(LinkContext& ctx)
 {
-    ctx.keepAliveTimeout = false;
-    ctx.QueueRequestLinkStatus(ctx.config.RemoteAddr);
-    ctx.listener->OnKeepAliveInitiated();
-    ctx.StartResponseTimer();
-    return PLLS_RequestLinkStatusWait::Instance();
+	if(ctx.sendingUnconfirmed)
+		return *this;
+
+	ctx.keepAliveTimeout = false;
+	ctx.QueueRequestLinkStatus(ctx.config.RemoteAddr);
+	ctx.listener->OnKeepAliveInitiated();
+	ctx.StartResponseTimer();
+	return PLLS_RequestLinkStatusWait::Instance();
 }
 
-////////////////////////////////////////////////////////
-// Class SendUnconfirmedTransmitWait
-////////////////////////////////////////////////////////
-
-PLLS_SendUnconfirmedTransmitWait PLLS_SendUnconfirmedTransmitWait::instance;
-
-PriStateBase& PLLS_SendUnconfirmedTransmitWait::OnTxReady(LinkContext& ctx)
+PriStateBase& PLLS_Idle::OnTxReady(LinkContext& ctx)
 {
-    if (ctx.pSegments->Advance())
-    {
-        auto output
-            = ctx.FormatPrimaryBufferWithUnconfirmed(ctx.pSegments->GetAddresses(), ctx.pSegments->GetSegment());
-        ctx.QueueTransmit(output, true);
-        return *this;
-    }
-    // we're done
-
-    ctx.CompleteSendOperation();
-    return PLLS_Idle::Instance();
+	if(!ctx.priDeferredActions.empty())
+	{
+		ctx.priDeferredActions.front()();
+		ctx.priDeferredActions.pop_front();
+	}
+	return *this;
 }
 
 ////////////////////////////////////////////////////////

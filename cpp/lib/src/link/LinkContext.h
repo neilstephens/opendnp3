@@ -37,6 +37,9 @@
 
 #include <exe4cpp/IExecutor.h>
 
+#include <deque>
+#include <functional>
+
 namespace opendnp3
 {
 
@@ -106,7 +109,11 @@ public:
 
     // buffers used for primary and secondary requests
     ser4cpp::StaticBuffer<LPDU_MAX_FRAME_SIZE> priTxBuffer;
+    std::deque<std::function<void()>> priDeferredActions;
     ser4cpp::StaticBuffer<LPDU_HEADER_SIZE> secTxBuffer;
+    std::deque<std::function<void()>> secDeferredActions;
+
+    bool sendingUnconfirmed;
 
     ser4cpp::Settable<ser4cpp::rseq_t> pendingPriTx;
     ser4cpp::Settable<ser4cpp::rseq_t> pendingSecTx;
