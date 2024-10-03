@@ -45,7 +45,7 @@ SLLS_NotReset SLLS_NotReset::instance;
 SecStateBase& SLLS_NotReset::OnTestLinkStatus(LinkContext& ctx, uint16_t /*source*/, bool /*fcb*/)
 {
     ++ctx.statistics.numUnexpectedFrame;
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "TestLinkStatus ignored");
+    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "TestLinkStatus ignored: secondary not reset");
     return *this;
 }
 
@@ -61,13 +61,18 @@ SecStateBase& SLLS_NotReset::OnResetLinkStates(LinkContext& ctx, uint16_t source
 {
     ctx.QueueAck(source);
     ctx.ResetReadFCB();
-    return SLLS_TransmitWaitReset::Instance();
+    return *this;
 }
 
 SecStateBase& SLLS_NotReset::OnRequestLinkStatus(LinkContext& ctx, uint16_t source)
 {
     ctx.QueueLinkStatus(source);
-    return SLLS_TransmitWaitNotReset::Instance();
+    return *this;
+}
+
+SecStateBase& SLLS_NotReset::OnTxReady(LinkContext& ctx)
+{
+    return *this;
 }
 
 ////////////////////////////////////////////////////////
@@ -81,7 +86,7 @@ SecStateBase& SLLS_Reset::OnTestLinkStatus(LinkContext& ctx, uint16_t source, bo
     {
         ctx.QueueAck(source);
         ctx.ToggleReadFCB();
-        return SLLS_TransmitWaitReset::Instance();
+	  return *this;
     }
 
     // "Re-transmit most recent response that contained function code 0 (ACK) or 1 (NACK)."
@@ -109,30 +114,25 @@ SecStateBase& SLLS_Reset::OnConfirmedUserData(
         SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "ConfirmedUserData ignored: unexpected frame count bit (FCB)");
     }
 
-    return SLLS_TransmitWaitReset::Instance();
+    return *this;
 }
 
 SecStateBase& SLLS_Reset::OnResetLinkStates(LinkContext& ctx, uint16_t source)
 {
     ctx.QueueAck(source);
     ctx.ResetReadFCB();
-    return SLLS_TransmitWaitReset::Instance();
+    return *this;
 }
 
 SecStateBase& SLLS_Reset::OnRequestLinkStatus(LinkContext& ctx, uint16_t source)
 {
     ctx.QueueLinkStatus(source);
-    return SLLS_TransmitWaitReset::Instance();
+    return *this;
 }
 
-////////////////////////////////////////////////////////
-//	Class SLLS_TransmitWaitReset
-////////////////////////////////////////////////////////
-SLLS_TransmitWaitReset SLLS_TransmitWaitReset::instance;
-
-////////////////////////////////////////////////////////
-//	Class SLLS_TransmitWaitNotReset
-////////////////////////////////////////////////////////
-SLLS_TransmitWaitNotReset SLLS_TransmitWaitNotReset::instance;
+SecStateBase& SLLS_Reset::OnTxReady(LinkContext& ctx)
+{
+    return *this;
+}
 
 } // namespace opendnp3

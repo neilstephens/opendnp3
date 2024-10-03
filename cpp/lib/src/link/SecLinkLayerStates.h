@@ -50,58 +50,6 @@ public:
 };
 
 ////////////////////////////////////////////////////////
-//	Class SLLS_TransmitWait
-////////////////////////////////////////////////////////
-template<class NextState> class SLLS_TransmitWaitBase : public SecStateBase
-{
-
-protected:
-    SLLS_TransmitWaitBase() {}
-
-public:
-    virtual SecStateBase& OnTxReady(LinkContext& ctx) override final;
-    virtual SecStateBase& OnResetLinkStates(LinkContext&, uint16_t source) override final;
-    virtual SecStateBase& OnRequestLinkStatus(LinkContext&, uint16_t source) override final;
-    virtual SecStateBase& OnTestLinkStatus(LinkContext&, uint16_t source, bool fcb) override final;
-    virtual SecStateBase& OnConfirmedUserData(
-        LinkContext&, uint16_t source, bool fcb, bool isBroadcast, const Message& message) override final;
-};
-
-template<class NextState> SecStateBase& SLLS_TransmitWaitBase<NextState>::OnTxReady(LinkContext& ctx)
-{
-    return NextState::Instance();
-}
-
-template<class NextState>
-SecStateBase& SLLS_TransmitWaitBase<NextState>::OnResetLinkStates(LinkContext& ctx, uint16_t source)
-{
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Ignoring link frame, remote is flooding");
-    return *this;
-}
-
-template<class NextState>
-SecStateBase& SLLS_TransmitWaitBase<NextState>::OnRequestLinkStatus(LinkContext& ctx, uint16_t source)
-{
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Ignoring link frame, remote is flooding");
-    return *this;
-}
-
-template<class NextState>
-SecStateBase& SLLS_TransmitWaitBase<NextState>::OnTestLinkStatus(LinkContext& ctx, uint16_t source, bool fcb)
-{
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Ignoring link frame, remote is flooding");
-    return *this;
-}
-
-template<class NextState>
-SecStateBase& SLLS_TransmitWaitBase<NextState>::OnConfirmedUserData(
-    LinkContext& ctx, uint16_t source, bool fcb, bool isBroadcast, const Message& message)
-{
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Ignoring link frame, remote is flooding");
-    return *this;
-}
-
-////////////////////////////////////////////////////////
 //	Class SLLS_UnReset
 ////////////////////////////////////////////////////////
 class SLLS_NotReset final : public SecStateBase
@@ -114,6 +62,7 @@ public:
     virtual SecStateBase& OnResetLinkStates(LinkContext&, uint16_t source) override;
     virtual SecStateBase& OnRequestLinkStatus(LinkContext&, uint16_t source) override;
     virtual SecStateBase& OnTestLinkStatus(LinkContext&, uint16_t source, bool fcb) override;
+    virtual SecStateBase& OnTxReady(LinkContext& ctx) override;
 };
 
 ////////////////////////////////////////////////////////
@@ -128,16 +77,7 @@ class SLLS_Reset final : public SecStateBase
     virtual SecStateBase& OnResetLinkStates(LinkContext&, uint16_t source) override;
     virtual SecStateBase& OnRequestLinkStatus(LinkContext&, uint16_t source) override;
     virtual SecStateBase& OnTestLinkStatus(LinkContext&, uint16_t source, bool fcb) override;
-};
-
-class SLLS_TransmitWaitReset : public SLLS_TransmitWaitBase<SLLS_Reset>
-{
-    MACRO_STATE_SINGLETON_INSTANCE(SLLS_TransmitWaitReset);
-};
-
-class SLLS_TransmitWaitNotReset : public SLLS_TransmitWaitBase<SLLS_NotReset>
-{
-    MACRO_STATE_SINGLETON_INSTANCE(SLLS_TransmitWaitNotReset);
+    virtual SecStateBase& OnTxReady(LinkContext& ctx) override;
 };
 
 } // namespace opendnp3
