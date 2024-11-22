@@ -40,9 +40,9 @@ namespace priority
 
     const int ASSIGN_CLASS = 140;
 
-    const int INTEGRITY_POLL = 150;
+    const int TIME_SYNC = 145;
 
-    const int TIME_SYNC = 160;
+    const int INTEGRITY_POLL = 150;
 
     const int ENABLE_UNSOLICITED = 170;
 
