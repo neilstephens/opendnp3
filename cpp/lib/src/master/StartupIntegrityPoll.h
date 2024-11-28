@@ -66,10 +66,10 @@ public:
         return true;
     }
 
+    virtual bool IsEnabled() const override;
+
 private:
     ClassField classes;
-
-    virtual bool IsEnabled() const override;
 
     virtual MasterTaskType GetTaskType() const override
     {

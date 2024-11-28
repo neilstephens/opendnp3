@@ -151,6 +151,11 @@ public:
         return this->context->IsBlocked(*this);
     }
 
+    virtual bool IsEnabled() const
+    {
+	  return true;
+    }
+
 protected:
     // called during OnStart() to initialize any state for a new run
     virtual void Initialize() {}
@@ -160,11 +165,6 @@ protected:
     void CompleteTask(TaskCompletion result, Timestamp now);
 
     virtual void OnTaskComplete(TaskCompletion result, Timestamp now) {}
-
-    virtual bool IsEnabled() const
-    {
-        return true;
-    }
 
     virtual MasterTaskType GetTaskType() const = 0;
 

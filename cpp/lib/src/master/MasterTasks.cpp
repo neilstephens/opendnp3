@@ -85,6 +85,11 @@ bool MasterTasks::DemandEventScan()
 
 bool MasterTasks::DemandIntegrity()
 {
+    //Don't demand another Integrity if startupIntegrity is still pending
+    if(startupIntegrity
+    && startupIntegrity->IsEnabled()
+    && startupIntegrity->ExpirationTime() != Timestamp::Max())
+	  return false;
     return this->Demand(this->forcedIntegrity);
 }
 
@@ -92,7 +97,7 @@ void MasterTasks::OnRestartDetected()
 {
     this->Demand(this->clearRestart);
     this->Demand(this->assignClass);
-    this->Demand(this->forcedIntegrity);
+    this->DemandIntegrity();
     this->Demand(this->enableUnsol);
 }
 
