@@ -7,14 +7,12 @@ FetchContent_Declare(
     DOWNLOAD_NO_EXTRACT TRUE
     DOWNLOAD_DIR        ${CMAKE_CURRENT_BINARY_DIR}/catch-src
 )
+FetchContent_MakeAvailable(catch)
 
-FetchContent_GetProperties(catch)
-if(NOT catch_POPULATED)
-    FetchContent_Populate(catch)
-
+if(NOT TARGET catch)
     find_package(Threads)
 
-    add_library(catch INTERFACE)
+    add_library(catch INTERFACE IMPORTED)
     target_include_directories(catch INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/catch-src)
     target_compile_features(catch INTERFACE cxx_std_11)
 endif()
