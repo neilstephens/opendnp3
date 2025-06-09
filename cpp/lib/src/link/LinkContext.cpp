@@ -88,6 +88,8 @@ bool LinkContext::OnLowerLayerDown()
     pendingPriTx.clear();
     pendingSecTx.clear();
     sendingUnconfirmed = false;
+    priDeferredActions.clear();
+    secDeferredActions.clear();
 
     rspTimeoutTimer.cancel();
     keepAliveTimer.cancel();
