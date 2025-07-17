@@ -65,21 +65,6 @@ public:
     virtual SecStateBase& OnTxReady(LinkContext& ctx) override;
 };
 
-////////////////////////////////////////////////////////
-//	Class SLLS_Reset
-////////////////////////////////////////////////////////
-class SLLS_Reset final : public SecStateBase
-{
-    MACRO_STATE_SINGLETON_INSTANCE(SLLS_Reset);
-
-    virtual SecStateBase& OnConfirmedUserData(
-        LinkContext&, uint16_t source, bool fcb, bool isBroadcast, const Message& message) override;
-    virtual SecStateBase& OnResetLinkStates(LinkContext&, uint16_t source) override;
-    virtual SecStateBase& OnRequestLinkStatus(LinkContext&, uint16_t source) override;
-    virtual SecStateBase& OnTestLinkStatus(LinkContext&, uint16_t source, bool fcb) override;
-    virtual SecStateBase& OnTxReady(LinkContext& ctx) override;
-};
-
 } // namespace opendnp3
 
 #endif

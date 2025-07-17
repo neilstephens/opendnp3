@@ -69,9 +69,9 @@ SecStateBase& SLLS_NotReset::OnResetLinkStates(LinkContext& ctx, uint16_t source
 {
 	DoOrDefer(ctx,[&]()
 	{
-		ctx.QueueAck(source);
-		ctx.ResetReadFCB();
+		ctx.QueueNotSupported(source);
 	});
+	SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "OnResetLinkStates rejected: not supported");
 	return *this;
 }
 
@@ -85,83 +85,6 @@ SecStateBase& SLLS_NotReset::OnRequestLinkStatus(LinkContext& ctx, uint16_t sour
 }
 
 SecStateBase& SLLS_NotReset::OnTxReady(LinkContext& ctx)
-{
-	if(!ctx.secDeferredActions.empty())
-	{
-		ctx.secDeferredActions.front()();
-		ctx.secDeferredActions.pop_front();
-	}
-	return *this;
-}
-
-////////////////////////////////////////////////////////
-//	Class SLLS_Reset
-////////////////////////////////////////////////////////
-SLLS_Reset SLLS_Reset::instance;
-
-SecStateBase& SLLS_Reset::OnTestLinkStatus(LinkContext& ctx, uint16_t source, bool fcb)
-{
-	if (ctx.nextReadFCB == fcb)
-	{
-		DoOrDefer(ctx,[&]()
-		{
-			ctx.QueueAck(source);
-			ctx.ToggleReadFCB();
-		});
-		return *this;
-	}
-
-	// "Re-transmit most recent response that contained function code 0 (ACK) or 1 (NACK)."
-	// This is a PITA implement
-	// TODO - see if this function is deprecated or not
-	SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Received TestLinkStatus with invalid FCB");
-	return *this;
-}
-
-SecStateBase& SLLS_Reset::OnConfirmedUserData(
-    LinkContext& ctx, uint16_t source, bool fcb, bool isBroadcast, const Message& message)
-{
-	if (!isBroadcast)
-	{
-		DoOrDefer(ctx,[&]()
-		{
-			ctx.QueueAck(source);
-		});
-	}
-
-	if (ctx.nextReadFCB == fcb)
-	{
-		ctx.ToggleReadFCB();
-		ctx.PushDataUp(message);
-	}
-	else
-	{
-		SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "ConfirmedUserData ignored: unexpected frame count bit (FCB)");
-	}
-
-	return *this;
-}
-
-SecStateBase& SLLS_Reset::OnResetLinkStates(LinkContext& ctx, uint16_t source)
-{
-	DoOrDefer(ctx,[&]()
-	{
-		ctx.QueueAck(source);
-		ctx.ResetReadFCB();
-	});
-	return *this;
-}
-
-SecStateBase& SLLS_Reset::OnRequestLinkStatus(LinkContext& ctx, uint16_t source)
-{
-	DoOrDefer(ctx,[&]()
-	{
-		ctx.QueueLinkStatus(source);
-	});
-	return *this;
-}
-
-SecStateBase& SLLS_Reset::OnTxReady(LinkContext& ctx)
 {
 	if(!ctx.secDeferredActions.empty())
 	{

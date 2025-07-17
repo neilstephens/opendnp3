@@ -39,7 +39,6 @@ LinkContext::LinkContext(const Logger& logger,
       pSegments(nullptr),
       txMode(LinkTransmitMode::Idle),
       executor(executor),
-      nextReadFCB(false),
       isOnline(false),
       keepAliveTimeout(false),
       lastMessageTimestamp(executor->get_time()),
@@ -178,10 +177,10 @@ void LinkContext::QueueTransmit(const ser4cpp::rseq_t& buffer, bool primary)
     }
 }
 
-void LinkContext::QueueAck(uint16_t destination)
+void LinkContext::QueueNotSupported(uint16_t destination)
 {
     auto dest = secTxBuffer.as_wseq();
-    auto buffer = LinkFrame::FormatAck(dest, config.IsMaster, false, destination, this->config.LocalAddr, &logger);
+    auto buffer = LinkFrame::FormatNotSupported(dest, config.IsMaster, false, destination, this->config.LocalAddr, &logger);
     FORMAT_HEX_BLOCK(logger, flags::LINK_TX_HEX, buffer, 10, 18);
     this->QueueTransmit(buffer, false);
 }

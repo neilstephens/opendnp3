@@ -45,7 +45,7 @@ struct LinkConfig
     {
     }
 
-    LinkConfig(bool isMaster, bool useConfirms)
+    LinkConfig(bool isMaster)
         :
 
           IsMaster(isMaster),
