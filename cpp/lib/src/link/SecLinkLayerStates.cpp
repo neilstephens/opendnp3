@@ -33,8 +33,12 @@ namespace opendnp3
 
 SecStateBase& SecStateBase::OnTxReady(LinkContext& ctx)
 {
-    FORMAT_LOG_BLOCK(ctx.logger, flags::ERR, "Invalid event for state: %s", this->Name());
-    return *this;
+	if(!ctx.secDeferredActions.empty())
+	{
+		ctx.secDeferredActions.front()();
+		ctx.secDeferredActions.pop_front();
+	}
+	return *this;
 }
 
 ////////////////////////////////////////////////////////
@@ -42,8 +46,10 @@ SecStateBase& SecStateBase::OnTxReady(LinkContext& ctx)
 ////////////////////////////////////////////////////////
 SLLS_NotReset SLLS_NotReset::instance;
 
-void DoOrDefer(LinkContext& ctx, std::function<void()> action)
+void DoOrDeferQTx(LinkContext& ctx, std::function<void()> action)
 {
+	//if the link is already in secondary transmit mode, defer the action.
+	//if it's in primary mode or idle, the queue-tx action can be executed
 	if(ctx.txMode != LinkTransmitMode::Secondary)
 		action();
 	else
@@ -67,30 +73,92 @@ SecStateBase& SLLS_NotReset::OnConfirmedUserData(
 
 SecStateBase& SLLS_NotReset::OnResetLinkStates(LinkContext& ctx, uint16_t source)
 {
-	DoOrDefer(ctx,[&]()
+	DoOrDeferQTx(ctx,[&]()
 	{
-		ctx.QueueNotSupported(source);
+		ctx.QueueAck(source);
 	});
-	SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "OnResetLinkStates rejected: not supported");
-	return *this;
+	ctx.ResetReadFCB();
+	return SLLS_Reset::Instance();
 }
 
 SecStateBase& SLLS_NotReset::OnRequestLinkStatus(LinkContext& ctx, uint16_t source)
 {
-	DoOrDefer(ctx,[&]()
+	DoOrDeferQTx(ctx,[&]()
 	{
 		ctx.QueueLinkStatus(source);
 	});
 	return *this;
 }
 
-SecStateBase& SLLS_NotReset::OnTxReady(LinkContext& ctx)
+////////////////////////////////////////////////////////
+//	Class SLLS_Reset
+////////////////////////////////////////////////////////
+SLLS_Reset SLLS_Reset::instance;
+
+SecStateBase& SLLS_Reset::OnTestLinkStatus(LinkContext& ctx, uint16_t source, bool fcb)
 {
-	if(!ctx.secDeferredActions.empty())
+	if (ctx.nextReadFCB == fcb)
 	{
-		ctx.secDeferredActions.front()();
-		ctx.secDeferredActions.pop_front();
+		DoOrDeferQTx(ctx,[&]()
+		{
+			ctx.QueueAck(source);
+		});
+		ctx.ToggleReadFCB();
+		return *this;
 	}
+
+	//resend the last ACK/NACK response
+	if(ctx.testLinkErr.is_not_empty())
+	{
+		DoOrDeferQTx(ctx,[&,resend{ctx.testLinkErr}]()
+		{
+			ctx.QueueTransmit(resend,false);
+		});
+	}
+	SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "Received TestLinkStatus with invalid FCB");
+	return *this;
+}
+
+SecStateBase& SLLS_Reset::OnConfirmedUserData(
+    LinkContext& ctx, uint16_t source, bool fcb, bool isBroadcast, const Message& message)
+{
+	if (!isBroadcast)
+	{
+		DoOrDeferQTx(ctx,[&]()
+		{
+			ctx.QueueAck(source);
+		});
+	}
+
+	if (ctx.nextReadFCB == fcb)
+	{
+		ctx.ToggleReadFCB();
+		ctx.PushDataUp(message);
+	}
+	else
+	{
+		SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "ConfirmedUserData ignored: unexpected frame count bit (FCB)");
+	}
+
+	return *this;
+}
+
+SecStateBase& SLLS_Reset::OnResetLinkStates(LinkContext& ctx, uint16_t source)
+{
+	DoOrDeferQTx(ctx,[&]()
+	{
+		ctx.QueueAck(source);
+	});
+	ctx.ResetReadFCB();
+	return *this;
+}
+
+SecStateBase& SLLS_Reset::OnRequestLinkStatus(LinkContext& ctx, uint16_t source)
+{
+	DoOrDeferQTx(ctx,[&]()
+	{
+		ctx.QueueLinkStatus(source);
+	});
 	return *this;
 }
 

@@ -39,6 +39,7 @@ LinkContext::LinkContext(const Logger& logger,
       pSegments(nullptr),
       txMode(LinkTransmitMode::Idle),
       executor(executor),
+      nextReadFCB(false),
       isOnline(false),
       keepAliveTimeout(false),
       lastMessageTimestamp(executor->get_time()),
@@ -183,6 +184,24 @@ void LinkContext::QueueNotSupported(uint16_t destination)
     auto buffer = LinkFrame::FormatNotSupported(dest, config.IsMaster, false, destination, this->config.LocalAddr, &logger);
     FORMAT_HEX_BLOCK(logger, flags::LINK_TX_HEX, buffer, 10, 18);
     this->QueueTransmit(buffer, false);
+}
+
+void LinkContext::QueueAck(uint16_t destination)
+{
+    auto dest = secTxBuffer.as_wseq();
+    //store for future error response resend
+    this->testLinkErr = LinkFrame::FormatAck(dest, config.IsMaster, false, destination, this->config.LocalAddr, &logger);
+    FORMAT_HEX_BLOCK(logger, flags::LINK_TX_HEX, this->testLinkErr, 10, 18);
+    this->QueueTransmit(this->testLinkErr, false);
+}
+
+void LinkContext::QueueNack(uint16_t destination)
+{
+    auto dest = secTxBuffer.as_wseq();
+    //store for future error response resend
+    this->testLinkErr = LinkFrame::FormatNack(dest, config.IsMaster, false, destination, this->config.LocalAddr, &logger);
+    FORMAT_HEX_BLOCK(logger, flags::LINK_TX_HEX, this->testLinkErr, 10, 18);
+    this->QueueTransmit(this->testLinkErr, false);
 }
 
 void LinkContext::QueueLinkStatus(uint16_t destination)

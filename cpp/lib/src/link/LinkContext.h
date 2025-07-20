@@ -65,6 +65,17 @@ public:
                 ILinkSession& session,
                 const LinkLayerConfig&);
 
+    // ---- helpers for dealing with the FCB bits ----
+
+    void ResetReadFCB()
+    {
+        nextReadFCB = true;
+    }
+    void ToggleReadFCB()
+    {
+        nextReadFCB = !nextReadFCB;
+    }
+
     // --- helpers for dealing with layer state transitations ---
     bool OnLowerLayerUp();
     bool OnLowerLayerDown();
@@ -76,6 +87,8 @@ public:
 
     // --- Helpers for queueing frames ---
     void QueueNotSupported(uint16_t destination);
+    void QueueAck(uint16_t destination);
+    void QueueNack(uint16_t destination);
     void QueueLinkStatus(uint16_t destination);
     void QueueRequestLinkStatus(uint16_t destination);
 
@@ -101,6 +114,7 @@ public:
     std::deque<std::function<void()>> priDeferredActions;
     ser4cpp::StaticBuffer<LPDU_HEADER_SIZE> secTxBuffer;
     std::deque<std::function<void()>> secDeferredActions;
+    ser4cpp::rseq_t testLinkErr;
 
     bool sendingUnconfirmed;
 
@@ -116,6 +130,7 @@ public:
 
     exe4cpp::Timer rspTimeoutTimer;
     exe4cpp::Timer keepAliveTimer;
+    bool nextReadFCB;
     bool isOnline;
     bool keepAliveTimeout;
     Timestamp lastMessageTimestamp;
