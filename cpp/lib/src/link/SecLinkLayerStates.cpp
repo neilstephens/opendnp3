@@ -78,6 +78,7 @@ SecStateBase& SLLS_NotReset::OnResetLinkStates(LinkContext& ctx, uint16_t source
 		ctx.QueueAck(source);
 	});
 	ctx.ResetReadFCB();
+	ctx.listener->OnStateChange(LinkStatus::RESET);
 	return SLLS_Reset::Instance();
 }
 
