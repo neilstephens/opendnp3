@@ -34,14 +34,15 @@ struct LinkConfig
     LinkConfig() = delete;
 
     LinkConfig(
-        bool isMaster, uint16_t localAddr, uint16_t remoteAddr, TimeDuration timeout, TimeDuration keepAliveTimeout)
+        bool isMaster, uint16_t localAddr, uint16_t remoteAddr, TimeDuration timeout, TimeDuration keepAliveTimeout, bool nackConfirmedUDWhenUnreset = true)
         :
 
           IsMaster(isMaster),
           LocalAddr(localAddr),
           RemoteAddr(remoteAddr),
           Timeout(timeout),
-          KeepAliveTimeout(keepAliveTimeout)
+          KeepAliveTimeout(keepAliveTimeout),
+          NackConfirmedUDWhenUnreset(nackConfirmedUDWhenUnreset)
     {
     }
 
@@ -52,7 +53,8 @@ struct LinkConfig
           LocalAddr(isMaster ? 1 : 1024),
           RemoteAddr(isMaster ? 1024 : 1),
           Timeout(TimeDuration::Seconds(1)),
-          KeepAliveTimeout(TimeDuration::Minutes(1))
+          KeepAliveTimeout(TimeDuration::Minutes(1)),
+          NackConfirmedUDWhenUnreset(true)
     {
     }
 
@@ -76,6 +78,10 @@ struct LinkConfig
     /// the interval for keep-alive messages (link status requests)
     /// if set to TimeDuration::Max(), the keep-alive is disabled
     TimeDuration KeepAliveTimeout;
+
+    /// the standard allows two behaviours for responding to confirmed user data when the link is UnReset
+    /// either do nothing or send NACK; this option defines which
+    bool NackConfirmedUDWhenUnreset;
 };
 
 } // namespace opendnp3

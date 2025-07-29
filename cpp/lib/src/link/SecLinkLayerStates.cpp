@@ -64,10 +64,19 @@ SecStateBase& SLLS_NotReset::OnTestLinkStatus(LinkContext& ctx, uint16_t /*sourc
 }
 
 SecStateBase& SLLS_NotReset::OnConfirmedUserData(
-    LinkContext& ctx, uint16_t /*source*/, bool /*fcb*/, bool /*isBroadcast*/, const Message& /*message*/)
+    LinkContext& ctx, uint16_t source, bool /*fcb*/, bool /*isBroadcast*/, const Message& /*message*/)
 {
     ++ctx.statistics.numUnexpectedFrame;
-    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "ConfirmedUserData ignored: secondary not reset");
+    if(ctx.config.NackConfirmedUDWhenUnreset)
+    {
+	    DoOrDeferQTx(ctx,[&]()
+	    {
+		    ctx.QueueNack(source);
+	    });
+	    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "ConfirmedUserData NACKd: secondary not reset");
+    }
+    else
+	    SIMPLE_LOG_BLOCK(ctx.logger, flags::WARN, "ConfirmedUserData ignored: secondary not reset");
     return *this;
 }
 
