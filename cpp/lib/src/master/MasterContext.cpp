@@ -402,6 +402,12 @@ void MContext::PerformFunction(const std::string& name,
     this->ScheduleAdhocTask(task);
 }
 
+void MContext::DoTimeSync()
+{
+	if (this->tasks.DemandTimeSync())
+	    this->scheduler->Evaluate();
+}
+
 bool MContext::Run(const std::shared_ptr<IMasterTask>& task)
 {
     if (this->activeTask || this->tstate != TaskState::IDLE)

@@ -152,6 +152,11 @@ public:
                                  const std::vector<Header>& headers,
                                  const TaskConfig& config = TaskConfig::Default())
         = 0;
+
+    /**
+     * Perform configured time sync operation, as if IIN NEED_TIME was recieved
+     */
+    virtual void DoTimeSync() = 0;
 };
 
 } // namespace opendnp3

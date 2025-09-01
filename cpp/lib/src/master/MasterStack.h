@@ -152,6 +152,8 @@ public:
                          const std::vector<Header>& headers,
                          const TaskConfig& config) override;
 
+    void DoTimeSync() override;
+
     // ------- implement ICommandProcessor ---------
 
     void SelectAndOperate(CommandSet&& commands,

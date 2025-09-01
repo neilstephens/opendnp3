@@ -102,6 +102,7 @@ public:
                          FunctionCode func,
                          const std::vector<Header>& headers,
                          const TaskConfig& config) final;
+    void DoTimeSync() final;
 
     /// --- ICommandProcessor ---
 

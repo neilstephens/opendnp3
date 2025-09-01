@@ -202,6 +202,14 @@ void MasterStack::PerformFunction(const std::string& name,
     return this->executor->post(add);
 }
 
+void MasterStack::DoTimeSync()
+{
+    auto action = [self = this->shared_from_this()]() {
+	  self->mcontext.DoTimeSync();
+    };
+    this->executor->post(action);
+}
+
 void MasterStack::SelectAndOperate(CommandSet&& commands,
                                    const CommandResultCallbackT& callback,
                                    const TaskConfig& config)

@@ -234,6 +234,14 @@ void MasterSessionStack::PerformFunction(const std::string& name,
     return executor->post(action);
 }
 
+void MasterSessionStack::DoTimeSync()
+{
+	auto action = [self = shared_from_this()]() -> void {
+	    self->context.DoTimeSync();
+	};
+	return executor->post(action);
+}
+
 /// --- ICommandProcessor ---
 
 void MasterSessionStack::SelectAndOperate(CommandSet&& commands,

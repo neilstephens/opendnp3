@@ -168,6 +168,7 @@ public:
                          FunctionCode func,
                          const HeaderBuilderT& builder,
                          TaskConfig config = TaskConfig::Default());
+    void DoTimeSync();
 
     /// public state manipulation actions
 
