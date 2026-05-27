@@ -61,13 +61,14 @@ std::shared_ptr<IChannel> DNP3Manager::AddTCPServer(const std::string& id,
 }
 
 std::shared_ptr<IChannel> DNP3Manager::AddUDPChannel(const std::string& id,
-                                                     const LogLevels& levels,
-                                                     const ChannelRetry& retry,
-                                                     const IPEndpoint& localEndpoint,
-                                                     const IPEndpoint& remoteEndpoint,
-                                                     std::shared_ptr<IChannelListener> listener)
+								     const LogLevels& levels,
+								     const ChannelRetry& retry,
+								     const IPEndpoint& localEndpoint,
+								     const IPEndpoint& remoteEndpoint,
+								     std::shared_ptr<IChannelListener> listener,
+								     const bool noConnect)
 {
-    return this->impl->AddUDPChannel(id, levels, retry, localEndpoint, remoteEndpoint, std::move(listener));
+    return this->impl->AddUDPChannel(id, levels, retry, localEndpoint, remoteEndpoint, std::move(listener),noConnect);
 }
 
 std::shared_ptr<IChannel> DNP3Manager::AddSerial(const std::string& id,

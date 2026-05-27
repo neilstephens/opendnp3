@@ -119,16 +119,17 @@ std::shared_ptr<IChannel> DNP3ManagerImpl::AddTCPServer(const std::string& id,
 }
 
 std::shared_ptr<IChannel> DNP3ManagerImpl::AddUDPChannel(const std::string& id,
-                                                         const LogLevels& levels,
-                                                         const ChannelRetry& retry,
-                                                         const IPEndpoint& localEndpoint,
-                                                         const IPEndpoint& remoteEndpoint,
-                                                         std::shared_ptr<IChannelListener> listener)
+									   const LogLevels& levels,
+									   const ChannelRetry& retry,
+									   const IPEndpoint& localEndpoint,
+									   const IPEndpoint& remoteEndpoint,
+									   std::shared_ptr<IChannelListener> listener,
+									   const bool noConnect)
 {
     auto create = [&]() -> std::shared_ptr<IChannel> {
         auto clogger = this->logger.detach(id, levels);
         auto executor = exe4cpp::StrandExecutor::create(this->io);
-        auto iohandler = UDPClientIOHandler::Create(clogger, listener, executor, retry, localEndpoint, remoteEndpoint);
+	  auto iohandler = UDPClientIOHandler::Create(clogger, listener, executor, retry, localEndpoint, remoteEndpoint,noConnect);
         return DNP3Channel::Create(clogger, executor, iohandler, this->resources);
     };
 
