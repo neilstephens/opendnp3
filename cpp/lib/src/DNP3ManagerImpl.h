@@ -67,11 +67,12 @@ public:
                                            std::shared_ptr<IChannelListener> listener);
 
     std::shared_ptr<IChannel> AddUDPChannel(const std::string& id,
-                                            const opendnp3::LogLevels& levels,
-                                            const ChannelRetry& retry,
-                                            const IPEndpoint& localEndpoint,
-                                            const IPEndpoint& remoteEndpoint,
-                                            std::shared_ptr<IChannelListener> listener);
+							  const opendnp3::LogLevels& levels,
+							  const ChannelRetry& retry,
+							  const IPEndpoint& localEndpoint,
+							  const IPEndpoint& remoteEndpoint,
+							  std::shared_ptr<IChannelListener> listener,
+							  const bool noConnect = false);
 
     std::shared_ptr<IChannel> AddSerial(const std::string& id,
                                         const opendnp3::LogLevels& levels,

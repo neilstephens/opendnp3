@@ -22,6 +22,8 @@
 
 #include "channel/UDPSocketChannel.h"
 
+#include "logging/LogMacros.h"
+
 #include <utility>
 
 namespace opendnp3
@@ -32,12 +34,14 @@ UDPClientIOHandler::UDPClientIOHandler(const Logger& logger,
                                        const std::shared_ptr<exe4cpp::StrandExecutor>& executor,
                                        const ChannelRetry& retry,
                                        const IPEndpoint& localEndpoint,
-                                       const IPEndpoint& remoteEndpoint)
+						   const IPEndpoint& remoteEndpoint,
+						   const bool noConnect)
     : IOHandler(logger, false, listener),
       executor(executor),
       retry(retry),
       localEndpoint(localEndpoint),
-      remoteEndpoint(remoteEndpoint)
+	remoteEndpoint(remoteEndpoint),
+	noConnect(noConnect)
 {
 }
 
@@ -48,7 +52,8 @@ void UDPClientIOHandler::ShutdownImpl()
 
 void UDPClientIOHandler::BeginChannelAccept()
 {
-    client = std::make_shared<UDPClient>(logger, executor);
+    if(client) return;
+    client = std::make_shared<UDPClient>(executor);
     this->TryOpen(this->retry.minOpenRetry);
 }
 
@@ -64,15 +69,13 @@ void UDPClientIOHandler::OnChannelShutdown()
 	});
 }
 
-bool UDPClientIOHandler::TryOpen(const TimeDuration& delay)
+void UDPClientIOHandler::TryOpen(const TimeDuration& delay)
 {
     if (!client)
-    {
-        return false;
-    }
+	  return;
 
     auto cb = [=, self = shared_from_this()](const std::shared_ptr<exe4cpp::StrandExecutor>& executor,
-                                             asio::ip::udp::socket socket, const std::error_code& ec) -> void {
+							   asio::ip::udp::socket socket, asio::ip::udp::endpoint rem_ep, const std::error_code& ec) -> void {
         if (ec)
         {
             FORMAT_LOG_BLOCK(this->logger, flags::WARN, "Error opening UDP socket: %s", ec.message().c_str());
@@ -96,7 +99,8 @@ bool UDPClientIOHandler::TryOpen(const TimeDuration& delay)
 
             if (client)
             {
-                this->OnNewChannel(UDPSocketChannel::Create(executor, std::move(socket)));
+		    this->OnNewChannel(UDPSocketChannel::Create(executor, std::move(socket), rem_ep, noConnect));
+		    ResetState();
             }
         }
     };
@@ -106,8 +110,6 @@ bool UDPClientIOHandler::TryOpen(const TimeDuration& delay)
                      remoteEndpoint.port);
 
     this->client->Open(localEndpoint, remoteEndpoint, cb);
-
-    return true;
 }
 
 void UDPClientIOHandler::ResetState()

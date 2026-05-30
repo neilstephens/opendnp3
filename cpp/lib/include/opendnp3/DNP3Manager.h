@@ -124,7 +124,8 @@ public:
                                             const ChannelRetry& retry,
                                             const IPEndpoint& localEndpoint,
                                             const IPEndpoint& remoteEndpoint,
-                                            std::shared_ptr<IChannelListener> listener);
+							  std::shared_ptr<IChannelListener> listener,
+							  const bool noConnect = false);
 
     /**
      * Add a persistent serial channel

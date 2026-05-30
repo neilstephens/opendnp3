@@ -40,9 +40,10 @@ public:
                                                       const std::shared_ptr<exe4cpp::StrandExecutor>& executor,
                                                       const ChannelRetry& retry,
                                                       const IPEndpoint& localEndpoint,
-                                                      const IPEndpoint& remoteEndpoint)
+									const IPEndpoint& remoteEndpoint,
+									const bool noConnect)
     {
-        return std::make_shared<UDPClientIOHandler>(logger, listener, executor, retry, localEndpoint, remoteEndpoint);
+	  return std::make_shared<UDPClientIOHandler>(logger, listener, executor, retry, localEndpoint, remoteEndpoint, noConnect);
     }
 
     UDPClientIOHandler(const Logger& logger,
@@ -50,7 +51,8 @@ public:
                        const std::shared_ptr<exe4cpp::StrandExecutor>& executor,
                        const ChannelRetry& retry,
                        const IPEndpoint& localEndpoint,
-                       const IPEndpoint& remoteEndpoint);
+			     const IPEndpoint& remoteEndpoint,
+			     const bool noConnect);
 
 protected:
     void ShutdownImpl() final;
@@ -59,7 +61,7 @@ protected:
     void OnChannelShutdown() final;
 
 private:
-    bool TryOpen(const TimeDuration& delay);
+    void TryOpen(const TimeDuration& delay);
 
     void ResetState();
 
@@ -67,6 +69,7 @@ private:
     const ChannelRetry retry;
     const IPEndpoint localEndpoint;
     const IPEndpoint remoteEndpoint;
+    const bool noConnect;
 
     // current value of the client
     std::shared_ptr<UDPClient> client;

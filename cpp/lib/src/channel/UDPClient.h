@@ -20,8 +20,6 @@
 #ifndef OPENDNP3_UDPCLIENT_H
 #define OPENDNP3_UDPCLIENT_H
 
-#include "channel/LoggingConnectionCondition.h"
-
 #include "opendnp3/channel/IPEndpoint.h"
 #include "opendnp3/util/Uncopyable.h"
 
@@ -35,32 +33,26 @@ class UDPClient final : public std::enable_shared_from_this<UDPClient>, private 
 
 public:
     typedef std::function<void(
-        const std::shared_ptr<exe4cpp::StrandExecutor>& executor, asio::ip::udp::socket, const std::error_code& ec)>
+	  const std::shared_ptr<exe4cpp::StrandExecutor>& executor, asio::ip::udp::socket, asio::ip::udp::endpoint rem_ep, const std::error_code& ec)>
         connect_callback_t;
 
-    static std::shared_ptr<UDPClient> Create(const Logger& logger,
-                                             const std::shared_ptr<exe4cpp::StrandExecutor>& executor)
+    static std::shared_ptr<UDPClient> Create(const std::shared_ptr<exe4cpp::StrandExecutor>& executor)
     {
-        return std::make_shared<UDPClient>(logger, executor);
+	  return std::make_shared<UDPClient>(executor);
     }
 
-    UDPClient(const Logger& logger, const std::shared_ptr<exe4cpp::StrandExecutor>& executor);
+    UDPClient(const std::shared_ptr<exe4cpp::StrandExecutor>& executor);
 
-    bool Cancel();
+    void Cancel();
 
-    bool Open(const IPEndpoint& localEndpoint, const IPEndpoint& remoteEndpoint, connect_callback_t callback);
+    void Open(const IPEndpoint& localEndpoint, const IPEndpoint& remoteEndpoint, connect_callback_t callback);
 
 private:
-    void HandleResolveResult(const connect_callback_t& callback,
-                             const asio::ip::udp::resolver::results_type& endpoints,
-                             const std::error_code& ec);
 
-    bool PostConnectError(const connect_callback_t& callback, const std::error_code& ec);
+    void PostConnectError(const connect_callback_t& callback, const std::error_code& ec);
 
-    bool connecting = false;
     bool canceled = false;
 
-    LoggingConnectionCondition condition;
     const std::shared_ptr<exe4cpp::StrandExecutor> executor;
     asio::ip::udp::socket socket;
     asio::ip::udp::resolver resolver;
