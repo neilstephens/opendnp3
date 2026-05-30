@@ -42,7 +42,7 @@ public:
     {
         typename proto_t::endpoint endpoint;
         auto string = address.empty() ? "0.0.0.0" : address;
-        auto addr = asio::ip::address::from_string(string, ec);
+        auto addr = asio::ip::make_address(string, ec);
         if (!ec)
         {
             endpoint.address(addr);

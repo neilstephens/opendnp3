@@ -2,8 +2,8 @@ include(FetchContent)
 
 FetchContent_Declare(
     asio
-    URL      https://github.com/chriskohlhoff/asio/archive/asio-1-16-0.zip
-    URL_HASH SHA1=6BDD33522D5B95B36445ABB2072A481F7CE15402
+    URL      https://github.com/chriskohlhoff/asio/archive/asio-1-38-0.zip
+    URL_HASH SHA1=f0c2fe431c5dcb87f9e0c104ef2e33fbb117c4d2
 )
 FetchContent_MakeAvailable(asio)
 
@@ -11,7 +11,7 @@ if(NOT TARGET asio)
     find_package(Threads)
 
     add_library(asio INTERFACE IMPORTED)
-    target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/asio/include)
+    target_include_directories(asio INTERFACE ${asio_SOURCE_DIR}/include)
     target_compile_definitions(asio INTERFACE ASIO_STANDALONE)
     target_compile_features(asio INTERFACE cxx_std_11)
     target_link_libraries(asio INTERFACE Threads::Threads)

@@ -60,7 +60,7 @@ void TCPServer::Shutdown()
 
 void TCPServer::Configure(const std::string& adapter, std::error_code& ec)
 {
-    auto address = asio::ip::address::from_string(adapter, ec);
+    auto address = asio::ip::make_address(adapter, ec);
 
     if (ec)
     {
@@ -89,7 +89,7 @@ void TCPServer::Configure(const std::string& adapter, std::error_code& ec)
         return;
     }
 
-    acceptor.listen(asio::socket_base::max_connections, ec);
+    acceptor.listen(asio::socket_base::max_listen_connections, ec);
 
     if (!ec)
     {

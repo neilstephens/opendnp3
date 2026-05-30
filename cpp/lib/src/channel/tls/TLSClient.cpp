@@ -100,19 +100,19 @@ bool TLSClient::BeginConnect(const IPEndpoint& remote, const connect_callback_t&
         return true;
     }
 
-    const auto address = asio::ip::address::from_string(remote.address, ec);
+    const auto address = asio::ip::make_address(remote.address, ec);
     auto self = this->shared_from_this();
     if (ec)
     {
         // Try DNS resolution instead
-        auto cb = [self, callback, stream](const std::error_code& ec, asio::ip::tcp::resolver::iterator endpoints) {
+        auto cb = [self, callback, stream](const std::error_code& ec, asio::ip::tcp::resolver::results_type endpoints) {
             self->HandleResolveResult(callback, stream, endpoints, ec);
         };
 
         std::stringstream portstr;
         portstr << remote.port;
 
-        resolver.async_resolve(asio::ip::tcp::resolver::query(remote.address, portstr.str()), executor->wrap(cb));
+        resolver.async_resolve(remote.address, portstr.str(), executor->wrap(cb));
 
         return true;
     }
@@ -150,7 +150,7 @@ void TLSClient::LogVerifyCallback(bool preverified, asio::ssl::verify_context& c
 
 void TLSClient::HandleResolveResult(const connect_callback_t& callback,
                                     const std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>>& stream,
-                                    const asio::ip::tcp::resolver::iterator& endpoints,
+                                    const asio::ip::tcp::resolver::results_type& endpoints,
                                     const std::error_code& ec)
 {
     if (ec)
@@ -164,7 +164,7 @@ void TLSClient::HandleResolveResult(const connect_callback_t& callback,
     {
         // attempt a connection to each endpoint in the iterator until we connect
         auto cb = [self = this->shared_from_this(), callback, stream](const std::error_code& ec,
-                                                                      asio::ip::tcp::resolver::iterator endpoints) {
+                                                                      asio::ip::tcp::endpoint /*endpoint*/) {
             self->HandleConnectResult(callback, stream, ec);
         };
 

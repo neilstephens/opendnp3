@@ -67,7 +67,7 @@ private:
 
     void HandleResolveResult(const connect_callback_t& callback,
                              const std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>>& stream,
-                             const asio::ip::tcp::resolver::iterator& endpoints,
+                             const asio::ip::tcp::resolver::results_type& endpoints,
                              const std::error_code& ec);
 
     void HandleConnectResult(const connect_callback_t& callback,

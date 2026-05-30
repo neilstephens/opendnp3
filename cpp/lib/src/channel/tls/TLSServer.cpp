@@ -63,7 +63,7 @@ void TLSServer::Shutdown()
 
 std::error_code TLSServer::ConfigureListener(const std::string& adapter, std::error_code& ec)
 {
-    auto address = asio::ip::address::from_string(adapter, ec);
+    auto address = asio::ip::make_address(adapter, ec);
 
     if (ec)
     {
@@ -79,7 +79,7 @@ std::error_code TLSServer::ConfigureListener(const std::string& adapter, std::er
     if (this->acceptor.bind(this->endpoint, ec))
         return ec;
 
-    if (this->acceptor.listen(asio::socket_base::max_connections, ec))
+    if (this->acceptor.listen(asio::socket_base::max_listen_connections, ec))
         return ec;
 
     std::ostringstream oss;

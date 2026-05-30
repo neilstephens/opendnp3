@@ -68,19 +68,19 @@ bool TCPClient::BeginConnect(const IPEndpoint& remote, const connect_callback_t&
         return this->PostConnectError(callback, ec);
     }
 
-    const auto address = asio::ip::address::from_string(remote.address, ec);
+    const auto address = asio::ip::make_address(remote.address, ec);
     auto self = this->shared_from_this();
     if (ec)
     {
         // Try DNS resolution instead
-        auto cb = [self, callback](const std::error_code& ec, asio::ip::tcp::resolver::iterator endpoints) {
+        auto cb = [self, callback](const std::error_code& ec, asio::ip::tcp::resolver::results_type endpoints) {
             self->HandleResolveResult(callback, endpoints, ec);
         };
 
         std::stringstream portstr;
         portstr << remote.port;
 
-        resolver.async_resolve(asio::ip::tcp::resolver::query(remote.address, portstr.str()), executor->wrap(cb));
+        resolver.async_resolve(remote.address, portstr.str(), executor->wrap(cb));
 
         return true;
     }
@@ -99,7 +99,7 @@ bool TCPClient::BeginConnect(const IPEndpoint& remote, const connect_callback_t&
 }
 
 void TCPClient::HandleResolveResult(const connect_callback_t& callback,
-                                    const asio::ip::tcp::resolver::iterator& endpoints,
+                                    const asio::ip::tcp::resolver::results_type& endpoints,
                                     const std::error_code& ec)
 {
     if (ec)
@@ -110,7 +110,7 @@ void TCPClient::HandleResolveResult(const connect_callback_t& callback,
     {
         // attempt a connection to each endpoint in the iterator until we connect
         auto cb = [self = shared_from_this(), callback](const std::error_code& ec,
-                                                        asio::ip::tcp::resolver::iterator endpoints) {
+                                                        asio::ip::tcp::endpoint /*endpoint*/) {
             self->connecting = false;
             if (!self->canceled)
             {
