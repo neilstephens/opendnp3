@@ -2,8 +2,8 @@ include(FetchContent)
 
 FetchContent_Declare(
     exe4cpp
-    URL      https://github.com/neilstephens/exe4cpp/archive/430a09508828777a2367c57a83f8ea80c19ec979.zip
-    URL_HASH SHA1=2a9d93b467742253c837c9d850c7e02b3cc09dba
+    URL      https://github.com/neilstephens/exe4cpp/archive/eeb2a4458a74b3ad459f228767fc60a110287446.zip
+    URL_HASH SHA1=3d79974b96dc427fe95176b0aeb1df137a0f214d
 )
 FetchContent_MakeAvailable(exe4cpp)
 
