@@ -29,7 +29,8 @@ UDPSocketChannel::UDPSocketChannel(const std::shared_ptr<exe4cpp::StrandExecutor
     : IAsyncChannel(executor),
 	socket(std::move(socket)),
 	remote_endpoint(std::make_unique<asio::ip::udp::endpoint>(rem_ep)),
-	noConnect(noConnect)
+	noConnect(noConnect),
+	promiscuous(remote_endpoint->address().is_unspecified())
 {
 }
 
@@ -38,11 +39,18 @@ void UDPSocketChannel::BeginReadImpl(ser4cpp::wseq_t dest)
     auto sender = std::make_shared<asio::ip::udp::endpoint>();
     auto callback = [this, sender](std::error_code ec, size_t num)
     {
-	    if(!ec && remote_endpoint && (*remote_endpoint == *sender) && !noConnect)
+	    if (!ec && remote_endpoint)
 	    {
-		    socket.connect(*sender,ec);
-		    if(!ec)
-			    remote_endpoint.reset();
+		    if(!noConnect && (promiscuous || *remote_endpoint == *sender))
+		    {
+			    socket.connect(*sender,ec);
+			    if(!ec)
+				    remote_endpoint.reset();
+		    }
+		    else if(noConnect && promiscuous)
+			    *remote_endpoint = *sender;
+		    else if(*remote_endpoint != *sender)
+			    return this->OnReadCallback(ec, 0);
 	    }
 	    this->OnReadCallback(ec, num);
     };
@@ -57,10 +65,12 @@ void UDPSocketChannel::BeginWriteImpl(const ser4cpp::rseq_t& buffer)
 {
     auto callback = [this](const std::error_code& ec, size_t num) { this->OnWriteCallback(ec, num); };
 
-    if(remote_endpoint)
-	socket.async_send_to(asio::buffer(buffer, buffer.length()), *remote_endpoint, this->executor->wrap(callback));
+    if(remote_endpoint && remote_endpoint->address().is_unspecified())
+	    this->executor->post([callback,n{buffer.length()}](){ callback(std::error_code(),n); });
+    else if (remote_endpoint)
+	    socket.async_send_to(asio::buffer(buffer, buffer.length()), *remote_endpoint, this->executor->wrap(callback));
     else
-	socket.async_send(asio::buffer(buffer, buffer.length()), this->executor->wrap(callback));
+	    socket.async_send(asio::buffer(buffer, buffer.length()), this->executor->wrap(callback));
 }
 
 void UDPSocketChannel::ShutdownImpl()

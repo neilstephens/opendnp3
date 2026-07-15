@@ -48,6 +48,7 @@ private:
     asio::ip::udp::socket socket;
     std::unique_ptr<asio::ip::udp::endpoint> remote_endpoint;
     const bool noConnect;
+    const bool promiscuous;
 };
 
 } // namespace opendnp3
